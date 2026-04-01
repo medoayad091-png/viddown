@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Savely — حمّل أي فيديو</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--s1:#13131f;--s2:#1c1c2e;--s3:#222238;
+  --line:rgba(255,255,255,0.07);--line2:rgba(255,255,255,0.13);
+  --g:#c8f135;--g2:#a3d61a;
+  --txt:#f0f0f8;--txt2:#8888aa;
+  --err:#ff5252;--err-bg:rgba(255,82,82,0.07);
+}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.blob{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(100px);opacity:.55}
+.b1{width:500px;height:500px;background:rgba(200,241,53,0.06);top:-150px;right:-100px}
+.b2{width:400px;height:400px;background:rgba(100,80,255,0.08);bottom:-100px;left:-100px}
+
+/* ── LOGO ── */
+.logo{font-size:1.5rem;font-weight:700;letter-spacing:-.5px;color:var(--txt);margin-bottom:48px;position:relative;z-index:1;text-align:center}
+.logo em{color:var(--g);font-style:italic}
+.logo small{display:block;font-size:11px;font-weight:400;color:var(--txt2);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+
+/* ── CARD ── */
+.card{
+  position:relative;z-index:1;
+  width:100%;max-width:600px;
+  background:var(--s1);
+  border:1px solid var(--line2);
+  border-radius:24px;
+  overflow:hidden;
+}
+.card-top{
+  padding:32px 32px 28px;
+  border-bottom:1px solid var(--line);
+}
+
+/* URL ROW */
+.url-row{display:flex;gap:8px;margin-bottom:16px}
+.url-box{
+  flex:1;display:flex;align-items:center;gap:0;
+  background:var(--s2);border:1px solid var(--line2);
+  border-radius:16px;overflow:hidden;
+  transition:border-color .2s,box-shadow .2s;
+}
+.url-box:focus-within{border-color:var(--g);box-shadow:0 0 0 3px rgba(200,241,53,0.1)}
+.url-input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+  font-size:.95rem;color:var(--txt);
+  padding:14px 16px;direction:ltr;
+}
+.url-input::placeholder{color:var(--txt2)}
+.paste-btn{
+  padding:0 14px;background:transparent;border:none;
+  border-left:1px solid var(--line);
+  color:var(--txt2);cursor:pointer;font-size:16px;
+  height:100%;transition:color .2s;
+}
+.paste-btn:hover{color:var(--g)}
+
+/* FORMAT PILLS */
+.fmt-row{display:flex;gap:8px}
+.fmt-pill{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px;background:var(--s2);
+  border:1.5px solid var(--line2);border-radius:12px;
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+  font-size:.88rem;font-weight:600;color:var(--txt2);
+  cursor:pointer;transition:all .2s;
+}
+.fmt-pill:hover{border-color:var(--g);color:var(--txt)}
+.fmt-pill.active{background:rgba(200,241,53,0.1);border-color:var(--g);color:var(--g)}
+.fmt-icon{font-size:16px}
+
+/* QUALITY (hidden for MP3) */
+.qual-row{
+  display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;
+}
+.qual-chip{
+  padding:6px 14px;border-radius:100px;
+  background:var(--s2);border:1.5px solid var(--line);
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+  font-size:12px;font-weight:600;color:var(--txt2);
+  cursor:pointer;transition:all .18s;
+}
+.qual-chip:hover{border-color:var(--g);color:var(--txt)}
+.qual-chip.active{background:rgba(200,241,53,0.1);border-color:var(--g);color:var(--g)}
+
+/* ── BIG DOWNLOAD BUTTON ── */
+.dl-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:18px;margin:0;
+  background:var(--g);color:var(--bg);
+  border:none;
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+  font-size:1.05rem;font-weight:700;
+  cursor:pointer;transition:all .2s;
+}
+.dl-btn:hover{background:var(--g2)}
+.dl-btn:active{transform:scale(.99)}
+.dl-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.dl-arrow{font-size:18px;transition:transform .2s}
+.dl-btn:hover .dl-arrow{transform:translateY(2px)}
+.dl-spin{
+  width:20px;height:20px;border:2.5px solid rgba(0,0,0,.2);
+  border-top-color:var(--bg);border-radius:50%;
+  animation:spin .7s linear infinite;display:none;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── STATUS AREA ── */
+.status{padding:0}
+
+/* PROGRESS */
+.prog{display:none;padding:24px 32px;border-bottom:1px solid var(--line)}
+.prog.show{display:block}
+.prog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.prog-label{font-size:13px;font-weight:600;color:var(--txt2)}
+.prog-pct{font-size:13px;font-weight:700;color:var(--g)}
+.prog-track{height:5px;background:var(--s3);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;width:0;background:linear-gradient(90deg,var(--g2),var(--g));border-radius:3px;transition:width .4s ease}
+.prog-msg{font-size:12px;color:var(--txt2);margin-top:8px}
+
+/* DONE */
+.done{display:none;padding:28px 32px;align-items:center;gap:20px}
+.done.show{display:flex}
+.done-icon{
+  width:52px;height:52px;border-radius:14px;
+  background:rgba(200,241,53,0.12);border:1px solid rgba(200,241,53,0.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:700;color:var(--g);flex-shrink:0;
+}
+.done-info{flex:1;min-width:0}
+.done-title{font-size:.95rem;font-weight:700;color:var(--g);margin-bottom:3px}
+.done-name{font-size:12px;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.save-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:11px 20px;flex-shrink:0;
+  background:var(--g);color:var(--bg);
+  border-radius:12px;font-family:'IBM Plex Sans Arabic',sans-serif;
+  font-size:.88rem;font-weight:700;text-decoration:none;
+  transition:all .2s;
+}
+.save-btn:hover{background:var(--g2)}
+
+/* ERROR */
+.err{display:none;padding:20px 32px;align-items:flex-start;gap:12px;background:var(--err-bg);border-top:1px solid rgba(255,82,82,.15)}
+.err.show{display:flex}
+.err-ico{font-size:16px;color:var(--err);flex-shrink:0;margin-top:2px}
+.err-body .err-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--err);margin-bottom:4px}
+.err-body .err-msg{font-size:13px;color:#ff9090;line-height:1.6}
+
+/* ── PLATFORMS FOOTER ── */
+.platforms{
+  margin-top:24px;position:relative;z-index:1;
+  display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+}
+.plt{font-size:11px;color:var(--txt2);padding:5px 12px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid var(--line)}
+
+@media(max-width:480px){
+  .card-top{padding:22px 20px 18px}
+  .prog,.done,.err{padding-left:20px;padding-right:20px}
+  .done{flex-direction:column;text-align:center}
+  .done-name{white-space:normal}
+}
+</style>
+</head>
+<body>
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+
+<div class="logo">
+  save<em>ly</em>
+  <small>حمّل أي فيديو بدون علامة مائية</small>
+</div>
+
+<div class="card">
+
+  <div class="card-top">
+    <!-- URL -->
+    <div class="url-row">
+      <div class="url-box">
+        <input class="url-input" id="urlInput" type="text" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" spellcheck="false"/>
+        <button class="paste-btn" onclick="doPaste()" title="لصق">📋</button>
+      </div>
+    </div>
+
+    <!-- FORMAT -->
+    <div class="fmt-row">
+      <div class="fmt-pill active" id="fmt-mp4" onclick="setFmt('mp4')">
+        <span class="fmt-icon">🎬</span> فيديو MP4
+      </div>
+      <div class="fmt-pill" id="fmt-mp3" onclick="setFmt('mp3')">
+        <span class="fmt-icon">🎵</span> صوت MP3
+      </div>
+    </div>
+
+    <!-- QUALITY CHIPS -->
+    <div class="qual-row" id="qualRow">
+      <div class="qual-chip active" onclick="setQual(this,'best')">أفضل جودة</div>
+      <div class="qual-chip" onclick="setQual(this,'1080')">1080p</div>
+      <div class="qual-chip" onclick="setQual(this,'720')">720p</div>
+      <div class="qual-chip" onclick="setQual(this,'480')">480p</div>
+      <div class="qual-chip" onclick="setQual(this,'360')">360p</div>
+    </div>
+  </div>
+
+  <!-- BIG BUTTON -->
+  <button class="dl-btn" id="dlBtn" onclick="startDownload()">
+    <span class="dl-arrow" id="dlArrow">⬇</span>
+    <span id="dlTxt">تحميل الآن</span>
+    <div class="dl-spin" id="dlSpin"></div>
+  </button>
+
+  <!-- STATUS -->
+  <div class="status">
+
+    <div class="prog" id="prog">
+      <div class="prog-head">
+        <span class="prog-label" id="progMsg">جارٍ التحميل...</span>
+        <span class="prog-pct" id="progPct">0%</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+      <div class="prog-msg" id="progSub">يرجى الانتظار، قد يستغرق بعض الوقت حسب حجم الفيديو</div>
+    </div>
+
+    <div class="done" id="done">
+      <div class="done-icon">✓</div>
+      <div class="done-info">
+        <div class="done-title">جاهز للتحميل!</div>
+        <div class="done-name" id="doneName">—</div>
+      </div>
+      <a class="save-btn" id="saveLink" href="#" download>
+        💾 حفظ
+      </a>
+    </div>
+
+    <div class="err" id="errBox">
+      <div class="err-ico">⚠</div>
+      <div class="err-body">
+        <div class="err-title">فشل التحميل</div>
+        <div class="err-msg" id="errMsg">—</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="platforms">
+  <div class="plt">يوتيوب</div>
+  <div class="plt">تيك توك</div>
+  <div class="plt">إنستغرام</div>
+  <div class="plt">تويتر/X</div>
+  <div class="plt">فيسبوك</div>
+  <div class="plt">Vimeo</div>
+  <div class="plt">Twitch</div>
+  <div class="plt">+1000 موقع</div>
+</div>
+
+<script>
+let jobId=null, pollT=null, fakeT=null, fakePct=0;
+let fmt='mp4', qual='best';
+
+async function doPaste(){
+  try{const t=await navigator.clipboard.readText();document.getElementById('urlInput').value=t.trim()}
+  catch{document.getElementById('urlInput').focus()}
+}
+
+function setFmt(f){
+  fmt=f;
+  document.getElementById('fmt-mp4').classList.toggle('active',f==='mp4');
+  document.getElementById('fmt-mp3').classList.toggle('active',f==='mp3');
+  document.getElementById('qualRow').style.display=f==='mp3'?'none':'flex';
+}
+
+function setQual(el,q){
+  qual=q;
+  document.querySelectorAll('.qual-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function setBusy(v){
+  document.getElementById('dlBtn').disabled=v;
+  document.getElementById('dlArrow').style.display=v?'none':'block';
+  document.getElementById('dlTxt').style.display=v?'none':'block';
+  document.getElementById('dlSpin').style.display=v?'block':'none';
+}
+
+function hideStatus(){
+  document.getElementById('prog').classList.remove('show');
+  document.getElementById('done').classList.remove('show');
+  document.getElementById('errBox').classList.remove('show');
+}
+
+function setProg(p,msg,sub){
+  p=Math.min(100,Math.round(p));
+  document.getElementById('progFill').style.width=p+'%';
+  document.getElementById('progPct').textContent=p+'%';
+  if(msg)document.getElementById('progMsg').textContent=msg;
+  if(sub)document.getElementById('progSub').textContent=sub;
+}
+
+function startFake(){
+  fakePct=3;setProg(3,'جارٍ الاتصال بالمصدر...','يرجى الانتظار...');
+  const msgs=[
+    ['جارٍ التحميل من المصدر...','قد يستغرق بعض الوقت حسب جودة الفيديو'],
+    ['معالجة الفيديو...','جارٍ دمج الصوت والصورة'],
+    ['تحضير الملف...','تقريباً انتهينا!'],
+  ];
+  fakeT=setInterval(()=>{
+    if(fakePct<82){
+      fakePct+=Math.random()*3.5;
+      const m=msgs[Math.floor(Math.random()*msgs.length)];
+      setProg(fakePct,m[0],m[1]);
+    }
+  },1000);
+}
+function stopFake(){clearInterval(fakeT)}
+
+async function startDownload(){
+  const url=document.getElementById('urlInput').value.trim();
+  if(!url){
+    document.getElementById('urlInput').focus();
+    document.getElementById('urlInput').style.borderColor='var(--err)';
+    setTimeout(()=>document.getElementById('urlInput').style.borderColor='',1500);
+    return;
+  }
+  setBusy(true);
+  hideStatus();
+  document.getElementById('prog').classList.add('show');
+  startFake();
+
+  try{
+    const r=await fetch('/api/download',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url,format:fmt,quality:qual})
+    });
+    const d=await r.json();
+    if(!r.ok||d.error){
+      stopFake();
+      document.getElementById('prog').classList.remove('show');
+      document.getElementById('errMsg').textContent=d.error||'حدث خطأ غير معروف';
+      document.getElementById('errBox').classList.add('show');
+      setBusy(false);
+      return;
+    }
+    jobId=d.job_id;
+    poll();
+  }catch(e){
+    stopFake();
+    document.getElementById('prog').classList.remove('show');
+    document.getElementById('errMsg').textContent='تعذر الاتصال بالخادم: '+e.message;
+    document.getElementById('errBox').classList.add('show');
+    setBusy(false);
+  }
+}
+
+function poll(){
+  clearTimeout(pollT);
+  pollT=setTimeout(async()=>{
+    try{
+      const r=await fetch('/api/status/'+jobId);
+      const d=await r.json();
+      if(d.status==='done'){
+        stopFake();setProg(100,'اكتمل التحميل!','الملف جاهز');
+        setTimeout(()=>{
+          document.getElementById('prog').classList.remove('show');
+          const ext=d.ext||'mp4';
+          const title=(d.title||'فيديو').substring(0,50);
+          document.getElementById('doneName').textContent=title+'.'+ext;
+          document.getElementById('saveLink').href='/api/file/'+jobId;
+          document.getElementById('done').classList.add('show');
+          setBusy(false);
+        },600);
+      }else if(d.status==='error'){
+        stopFake();
+        document.getElementById('prog').classList.remove('show');
+        document.getElementById('errMsg').textContent=d.error||'حدث خطأ أثناء التحميل';
+        document.getElementById('errBox').classList.add('show');
+        setBusy(false);
+      }else{
+        poll();
+      }
+    }catch{poll()}
+  },1800);
+}
+
+document.getElementById('urlInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter')startDownload();
+});
+</script>
+</body>
+</html>
