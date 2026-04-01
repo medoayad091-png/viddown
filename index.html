@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VidDown — تحميل فيديو احترافي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070710;
+  --s1:#0f0f1e;
+  --s2:#161628;
+  --s3:#1e1e35;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.12);
+  --acc:#00e5ff;
+  --acc2:#7c6ffd;
+  --acc3:#ff6b9d;
+  --txt:#eeeeff;
+  --muted:#6b6b99;
+  --muted2:#9898bb;
+  --success:#00e676;
+  --danger:#ff5252;
+  --warn:#ffab40;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Cairo',sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── BG ORBS ── */
+.orb{
+  position:fixed;pointer-events:none;border-radius:50%;filter:blur(80px);opacity:.18;
+}
+.orb1{width:600px;height:600px;background:var(--acc2);top:-200px;right:-200px;animation:drift 12s ease-in-out infinite alternate}
+.orb2{width:500px;height:500px;background:var(--acc);bottom:-150px;left:-150px;animation:drift 15s ease-in-out infinite alternate-reverse}
+.orb3{width:300px;height:300px;background:var(--acc3);top:40%;left:50%;animation:drift 10s ease-in-out infinite alternate}
+@keyframes drift{0%{transform:translate(0,0)}100%{transform:translate(40px,40px)}}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 32px;
+  background:rgba(7,7,16,0.8);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  display:flex;align-items:center;gap:10px;
+  font-size:1.3rem;font-weight:900;letter-spacing:-0.5px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.nav-logo .dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--acc);
+  box-shadow:0 0 12px var(--acc);
+  animation:blink 2s infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.nav-badge{
+  font-size:11px;padding:4px 12px;
+  background:rgba(0,229,255,.1);
+  border:1px solid rgba(0,229,255,.25);
+  border-radius:20px;color:var(--acc);font-weight:600;
+}
+
+/* ── HERO ── */
+.hero{
+  text-align:center;
+  padding:90px 20px 70px;
+  position:relative;
+}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--acc);font-weight:700;margin-bottom:24px;
+  padding:6px 16px;
+  background:rgba(0,229,255,.07);
+  border:1px solid rgba(0,229,255,.2);
+  border-radius:20px;
+}
+h1{
+  font-size:clamp(2.2rem,7vw,4.5rem);
+  font-weight:900;line-height:1.1;letter-spacing:-2px;
+  margin-bottom:20px;
+}
+h1 span.grad{
+  background:linear-gradient(135deg,#fff 0%,var(--acc) 50%,var(--acc2) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-sub{
+  font-size:1.1rem;color:var(--muted2);max-width:520px;
+  margin:0 auto 16px;line-height:1.8;font-weight:300;
+}
+.hero-features{
+  display:flex;justify-content:center;gap:24px;flex-wrap:wrap;
+  margin-bottom:60px;
+}
+.feat{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--muted2);font-weight:600;
+}
+.feat .f-dot{width:6px;height:6px;border-radius:50%;background:var(--success)}
+
+/* ── MAIN CARD ── */
+.main-card{
+  max-width:700px;margin:0 auto;
+  background:var(--s1);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  padding:36px;
+  position:relative;
+  overflow:hidden;
+}
+.main-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--acc),transparent);
+}
+
+/* URL INPUT */
+.url-wrap{
+  display:flex;gap:10px;margin-bottom:24px;
+}
+.url-input{
+  flex:1;background:var(--s2);
+  border:1px solid var(--border2);
+  border-radius:14px;
+  padding:16px 20px;
+  font-family:'Cairo',sans-serif;
+  font-size:0.95rem;color:var(--txt);
+  outline:none;direction:ltr;
+  transition:border-color .2s,box-shadow .2s;
+}
+.url-input::placeholder{color:var(--muted)}
+.url-input:focus{
+  border-color:var(--acc);
+  box-shadow:0 0 0 3px rgba(0,229,255,.1);
+}
+.paste-btn{
+  background:var(--s2);border:1px solid var(--border2);
+  border-radius:14px;padding:0 20px;
+  font-family:'Cairo',sans-serif;font-size:0.85rem;
+  color:var(--muted2);cursor:pointer;
+  transition:all .2s;white-space:nowrap;
+}
+.paste-btn:hover{border-color:var(--acc);color:var(--acc)}
+
+/* ANALYZE BTN */
+.analyze-btn{
+  width:100%;padding:16px;
+  background:linear-gradient(135deg,var(--acc2),var(--acc));
+  border:none;border-radius:14px;
+  font-family:'Cairo',sans-serif;font-size:1rem;font-weight:700;
+  color:#fff;cursor:pointer;
+  transition:all .25s;
+  position:relative;overflow:hidden;
+}
+.analyze-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,229,255,.25)}
+.analyze-btn:active{transform:translateY(0)}
+.analyze-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.analyze-btn .spinner{
+  display:none;width:18px;height:18px;
+  border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  margin:0 auto;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── VIDEO INFO ── */
+.video-info{
+  display:none;
+  margin-top:28px;
+  animation:fadeUp .4s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.video-info.show{display:block}
+
+.info-card{
+  display:flex;gap:16px;
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:16px;padding:16px;margin-bottom:20px;
+}
+.thumb-wrap{
+  width:120px;height:72px;flex-shrink:0;
+  border-radius:10px;overflow:hidden;
+  background:var(--s3);
+}
+.thumb-wrap img{width:100%;height:100%;object-fit:cover}
+.info-meta{flex:1;min-width:0}
+.info-title{
+  font-size:0.92rem;font-weight:700;
+  margin-bottom:6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.info-row{display:flex;gap:12px;flex-wrap:wrap}
+.info-badge{
+  font-size:11px;padding:3px 10px;border-radius:8px;font-weight:600;
+  background:var(--s3);color:var(--muted2);
+}
+.info-badge.platform{background:rgba(124,111,253,.15);color:var(--acc2)}
+
+/* OPTIONS */
+.options-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  margin-bottom:20px;
+}
+.opt-group label{
+  display:block;font-size:11px;color:var(--muted);
+  font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.opt-select{
+  width:100%;padding:12px 16px;
+  background:var(--s2);border:1px solid var(--border2);
+  border-radius:12px;
+  font-family:'Cairo',sans-serif;font-size:0.9rem;color:var(--txt);
+  outline:none;cursor:pointer;
+  transition:border-color .2s;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b99' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:left 14px center;
+}
+.opt-select:focus{border-color:var(--acc)}
+.opt-select option{background:var(--s2)}
+
+/* DOWNLOAD BTN */
+.dl-btn{
+  width:100%;padding:18px;
+  background:linear-gradient(135deg,#00c896,var(--success));
+  border:none;border-radius:14px;
+  font-family:'Cairo',sans-serif;font-size:1.05rem;font-weight:900;
+  color:#001a10;cursor:pointer;
+  transition:all .25s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.dl-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,230,118,.3)}
+.dl-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ── PROGRESS ── */
+.progress-wrap{
+  display:none;margin-top:20px;
+  animation:fadeUp .3s ease;
+}
+.progress-wrap.show{display:block}
+.progress-label{
+  display:flex;justify-content:space-between;
+  font-size:12px;color:var(--muted2);margin-bottom:8px;font-weight:600;
+}
+.progress-bar-bg{
+  height:6px;background:var(--s3);border-radius:3px;overflow:hidden;
+}
+.progress-bar-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--acc2),var(--acc));
+  border-radius:3px;
+  transition:width .3s ease;
+  animation:shimmer 1.5s infinite;
+}
+@keyframes shimmer{
+  0%{background-position:0% 0%}
+  100%{background-position:200% 0%}
+}
+.progress-status{
+  margin-top:10px;font-size:13px;color:var(--muted2);text-align:center;
+}
+
+/* ── RESULT ── */
+.result-card{
+  display:none;margin-top:20px;
+  background:rgba(0,230,118,.07);
+  border:1px solid rgba(0,230,118,.2);
+  border-radius:16px;padding:20px;text-align:center;
+  animation:fadeUp .4s ease;
+}
+.result-card.show{display:block}
+.result-icon{font-size:2.5rem;margin-bottom:8px}
+.result-title{font-size:1.1rem;font-weight:700;color:var(--success);margin-bottom:4px}
+.result-sub{font-size:12px;color:var(--muted2);margin-bottom:16px}
+.result-dl-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 28px;
+  background:var(--success);color:#001a10;
+  font-family:'Cairo',sans-serif;font-size:0.95rem;font-weight:700;
+  border-radius:12px;text-decoration:none;
+  transition:all .2s;
+}
+.result-dl-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,230,118,.3)}
+
+/* ERROR */
+.error-card{
+  display:none;margin-top:20px;
+  background:rgba(255,82,82,.07);
+  border:1px solid rgba(255,82,82,.2);
+  border-radius:16px;padding:16px;
+  animation:fadeUp .3s ease;
+}
+.error-card.show{display:flex;align-items:flex-start;gap:12px}
+.error-icon{font-size:1.3rem;flex-shrink:0}
+.error-text{font-size:13px;color:#ff9090;line-height:1.6}
+.error-title{font-weight:700;color:var(--danger);margin-bottom:4px;font-size:0.9rem}
+
+/* ── FEATURES STRIP ── */
+.features{
+  max-width:700px;margin:40px auto 0;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  padding:0 20px;
+}
+@media(max-width:500px){.features{grid-template-columns:1fr}}
+.feature-card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:18px;padding:24px 20px;text-align:center;
+}
+.feature-icon{font-size:2rem;margin-bottom:12px}
+.feature-title{font-size:0.9rem;font-weight:700;margin-bottom:6px}
+.feature-desc{font-size:0.78rem;color:var(--muted);line-height:1.6}
+
+/* ── PLATFORMS ── */
+.platforms{
+  max-width:700px;margin:40px auto 0;
+  padding:0 20px;
+}
+.platforms-title{
+  text-align:center;font-size:0.85rem;color:var(--muted);
+  font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;
+}
+.platform-list{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:10px;
+}
+.platform-chip{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 16px;
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:20px;font-size:12px;font-weight:600;color:var(--muted2);
+}
+
+/* ── FOOTER ── */
+footer{
+  text-align:center;padding:60px 20px 40px;
+  color:var(--muted);font-size:12px;line-height:1.8;
+}
+footer a{color:var(--acc2);text-decoration:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  nav{padding:14px 20px}
+  .main-card{padding:24px 20px}
+  .options-grid{grid-template-columns:1fr}
+  .info-card{flex-direction:column}
+  .thumb-wrap{width:100%;height:160px}
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="dot"></div>
+    VidDown
+  </div>
+  <div class="nav-badge">مجاني 100٪</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">⚡ تحميل فوري بدون علامة مائية</div>
+  <h1><span class="grad">حمّل أي فيديو</span><br/>من أي منصة</h1>
+  <p class="hero-sub">تقنية yt-dlp الأقوى عالمياً — جودة أصلية، بدون علامة مائية، بدون تسجيل</p>
+  <div class="hero-features">
+    <div class="feat"><div class="f-dot"></div> يوتيوب 4K</div>
+    <div class="feat"><div class="f-dot"></div> تيك توك بدون علامة</div>
+    <div class="feat"><div class="f-dot"></div> إنستغرام ريلز</div>
+    <div class="feat"><div class="f-dot"></div> تويتر/X</div>
+    <div class="feat"><div class="f-dot"></div> فيسبوك</div>
+    <div class="feat"><div class="f-dot" style="background:var(--warn)"></div> MP3 أيضاً</div>
+  </div>
+
+  <!-- MAIN CARD -->
+  <div class="main-card">
+    <div class="url-wrap">
+      <input class="url-input" id="urlInput" type="text" placeholder="https://www.youtube.com/watch?v=..."/>
+      <button class="paste-btn" onclick="pasteUrl()">📋 لصق</button>
+    </div>
+    <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">
+      <span id="analyzeBtnText">🔍 تحليل الرابط</span>
+      <div class="spinner" id="analyzeSpinner"></div>
+    </button>
+
+    <!-- VIDEO INFO -->
+    <div class="video-info" id="videoInfo">
+      <div class="info-card">
+        <div class="thumb-wrap">
+          <img id="thumbImg" src="" alt="thumbnail"/>
+        </div>
+        <div class="info-meta">
+          <div class="info-title" id="videoTitle">—</div>
+          <div class="info-row">
+            <span class="info-badge platform" id="platformBadge">—</span>
+            <span class="info-badge" id="durationBadge">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="options-grid">
+        <div class="opt-group">
+          <label>الصيغة</label>
+          <select class="opt-select" id="fmtSelect" onchange="onFmtChange()">
+            <option value="mp4">🎬 فيديو MP4</option>
+            <option value="mp3">🎵 صوت MP3</option>
+          </select>
+        </div>
+        <div class="opt-group" id="qualGroup">
+          <label>الجودة</label>
+          <select class="opt-select" id="qualSelect">
+            <option value="best">🌟 أفضل جودة</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="dl-btn" id="dlBtn" onclick="startDownload()">
+        ⬇️ تحميل الآن
+      </button>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label">
+        <span>جاري التحميل...</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-status" id="progressStatus">⏳ جارٍ المعالجة...</div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="result-card" id="resultCard">
+      <div class="result-icon">✅</div>
+      <div class="result-title">جاهز للتحميل!</div>
+      <div class="result-sub" id="resultSub">اضغط الزر لحفظ الملف على جهازك</div>
+      <a class="result-dl-btn" id="resultLink" href="#" download>⬇️ تحميل الملف</a>
+    </div>
+
+    <!-- ERROR -->
+    <div class="error-card" id="errorCard">
+      <div class="error-icon">⚠️</div>
+      <div class="error-text">
+        <div class="error-title">حدث خطأ</div>
+        <div id="errorMsg">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="features">
+  <div class="feature-card">
+    <div class="feature-icon">🚀</div>
+    <div class="feature-title">سرعة فائقة</div>
+    <div class="feature-desc">تحميل مباشر بأقصى سرعة ممكنة من الخادم</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🎯</div>
+    <div class="feature-title">بدون علامة مائية</div>
+    <div class="feature-desc">الفيديو كما هو بالجودة الأصلية تماماً</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🔒</div>
+    <div class="feature-title">خاص وآمن</div>
+    <div class="feature-desc">الملفات تُحذف تلقائياً بعد 10 دقائق</div>
+  </div>
+</div>
+
+<!-- PLATFORMS -->
+<div class="platforms">
+  <div class="platforms-title">المنصات المدعومة</div>
+  <div class="platform-list">
+    <div class="platform-chip">▶️ يوتيوب</div>
+    <div class="platform-chip">📸 إنستغرام</div>
+    <div class="platform-chip">🎵 تيك توك</div>
+    <div class="platform-chip">🐦 تويتر/X</div>
+    <div class="platform-chip">📘 فيسبوك</div>
+    <div class="platform-chip">🔴 ريديت</div>
+    <div class="platform-chip">📺 Vimeo</div>
+    <div class="platform-chip">🎮 Twitch</div>
+    <div class="platform-chip">+ 1000 موقع آخر</div>
+  </div>
+</div>
+
+<footer>
+  <p>صُنع بـ ❤️ — مجاني دائماً • بلا إعلانات • بلا تتبع</p>
+  <p style="margin-top:8px">يُرجى احترام حقوق الملكية الفكرية وشروط استخدام المنصات</p>
+</footer>
+
+<script>
+let currentJobId = null;
+let pollTimer = null;
+let fakeProgress = 0;
+let fakeTimer = null;
+
+async function pasteUrl(){
+  try{
+    const t = await navigator.clipboard.readText();
+    document.getElementById('urlInput').value = t;
+  }catch{document.getElementById('urlInput').focus()}
+}
+
+function fmtDuration(s){
+  if(!s)return'—';
+  const m=Math.floor(s/60),sec=s%60;
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+async function analyze(){
+  const url = document.getElementById('urlInput').value.trim();
+  if(!url){alert('الرجاء إدخال رابط صحيح');return}
+
+  setAnalyzeLoading(true);
+  hideAll();
+
+  try{
+    const r = await fetch('/api/info',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url})
+    });
+    const data = await r.json();
+    if(!r.ok||data.error){showError(data.error||'فشل التحليل');return}
+
+    document.getElementById('videoTitle').textContent = data.title||'فيديو';
+    document.getElementById('thumbImg').src = data.thumbnail||'';
+    document.getElementById('platformBadge').textContent = data.platform||'—';
+    document.getElementById('durationBadge').textContent = fmtDuration(data.duration);
+
+    // Build quality options
+    const qs = document.getElementById('qualSelect');
+    qs.innerHTML = '<option value="best">🌟 أفضل جودة</option>';
+    (data.heights||[]).forEach(h=>{
+      const o=document.createElement('option');
+      o.value=h;o.textContent=`${h}p`;
+      qs.appendChild(o);
+    });
+
+    document.getElementById('videoInfo').classList.add('show');
+  }catch(e){
+    showError('تعذر الاتصال بالخادم: '+e.message);
+  }finally{
+    setAnalyzeLoading(false);
+  }
+}
+
+async function startDownload(){
+  const url=document.getElementById('urlInput').value.trim();
+  const fmt=document.getElementById('fmtSelect').value;
+  const quality=document.getElementById('qualSelect').value;
+
+  document.getElementById('dlBtn').disabled=true;
+  hideResultError();
+  showProgress(true);
+  startFakeProgress();
+
+  try{
+    const r=await fetch('/api/download',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url,format:fmt,quality})
+    });
+    const data=await r.json();
+    if(!r.ok||data.error){stopFakeProgress();showProgress(false);showError(data.error);document.getElementById('dlBtn').disabled=false;return}
+    currentJobId=data.job_id;
+    pollStatus();
+  }catch(e){
+    stopFakeProgress();showProgress(false);
+    showError('تعذر الاتصال: '+e.message);
+    document.getElementById('dlBtn').disabled=false;
+  }
+}
+
+function pollStatus(){
+  clearTimeout(pollTimer);
+  pollTimer=setTimeout(async()=>{
+    try{
+      const r=await fetch('/api/status/'+currentJobId);
+      const data=await r.json();
+      if(data.status==='done'){
+        stopFakeProgress();
+        setProgress(100,'✅ اكتمل!');
+        setTimeout(()=>{
+          showProgress(false);
+          showResult(currentJobId,data.title,data.ext);
+          document.getElementById('dlBtn').disabled=false;
+        },600);
+      }else if(data.status==='error'){
+        stopFakeProgress();showProgress(false);
+        showError(data.error||'حدث خطأ أثناء التحميل');
+        document.getElementById('dlBtn').disabled=false;
+      }else{
+        pollStatus();
+      }
+    }catch{pollStatus()}
+  },1500);
+}
+
+function startFakeProgress(){
+  fakeProgress=5;
+  setProgress(5,'⏳ جارٍ التحميل من المصدر...');
+  fakeTimer=setInterval(()=>{
+    if(fakeProgress<85){
+      fakeProgress+=Math.random()*4;
+      const msgs=['⏳ جارٍ التحميل من المصدر...','🔄 معالجة الفيديو...','📦 ضغط الملف...','⚡ تسريع التحميل...'];
+      setProgress(fakeProgress,msgs[Math.floor(Math.random()*msgs.length)]);
+    }
+  },800);
+}
+function stopFakeProgress(){clearInterval(fakeTimer)}
+
+function setProgress(pct,msg){
+  pct=Math.min(100,Math.round(pct));
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressPct').textContent=pct+'%';
+  if(msg)document.getElementById('progressStatus').textContent=msg;
+}
+
+function showProgress(show){
+  document.getElementById('progressWrap').classList.toggle('show',show);
+}
+
+function showResult(jobId,title,ext){
+  const sub = ext==='mp3'?'ملف صوتي MP3':'فيديو MP4 بدون علامة مائية';
+  document.getElementById('resultSub').textContent=sub+' — '+title.substring(0,50);
+  document.getElementById('resultLink').href='/api/file/'+jobId;
+  document.getElementById('resultCard').classList.add('show');
+}
+
+function showError(msg){
+  document.getElementById('errorMsg').textContent=msg;
+  document.getElementById('errorCard').classList.add('show');
+}
+
+function hideAll(){
+  document.getElementById('videoInfo').classList.remove('show');
+  hideResultError();
+  showProgress(false);
+}
+
+function hideResultError(){
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('errorCard').classList.remove('show');
+}
+
+function setAnalyzeLoading(v){
+  document.getElementById('analyzeBtn').disabled=v;
+  document.getElementById('analyzeBtnText').style.display=v?'none':'block';
+  document.getElementById('analyzeSpinner').style.display=v?'block':'none';
+}
+
+function onFmtChange(){
+  const mp3=document.getElementById('fmtSelect').value==='mp3';
+  document.getElementById('qualGroup').style.opacity=mp3?'.4':'1';
+  document.getElementById('qualSelect').disabled=mp3;
+}
+
+document.getElementById('urlInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter')analyze();
+});
+</script>
+</body>
+</html>
