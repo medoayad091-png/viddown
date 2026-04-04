@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Savely</title>
+<link rel="manifest" href="/static/manifest.json"/>
+<meta name="theme-color" content="#c8f135"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Savely"/>
+<link rel="apple-touch-icon" href="/static/icon-192.png"/>
+<style>
+:root{--bg:#09090f;--c1:#111119;--c2:#18182a;--c3:#1f1f33;--br:rgba(255,255,255,.08);--br2:rgba(255,255,255,.14);--g:#c8f135;--g2:#a3d61a;--t:#eeeef6;--t2:#8484a8;--t3:#4e4e6a;--r:14px;--r2:20px}
+*,::before,::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:var(--t);display:flex;flex-direction:column;align-items:center;padding:24px 16px max(32px,env(safe-area-inset-bottom))}
+
+/* blobs */
+.b{position:fixed;border-radius:50%;pointer-events:none;filter:blur(100px);z-index:0}
+.b1{width:420px;height:420px;background:rgba(200,241,53,.05);top:-140px;right:-80px}
+.b2{width:320px;height:320px;background:rgba(90,60,255,.06);bottom:-80px;left:-60px}
+
+/* install bar */
+#ibar{display:none;width:100%;max-width:540px;margin-bottom:14px;background:rgba(200,241,53,.08);border:1px solid rgba(200,241,53,.2);border-radius:var(--r2);padding:12px 16px;position:relative;z-index:1}
+#ibar.on{display:flex;align-items:center;gap:12px}
+#ibar-t{flex:1;font-size:13px;font-weight:600;color:var(--g)}
+#ibar-t small{display:block;font-size:11px;color:var(--t2);font-weight:400}
+.ib{padding:7px 14px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit}
+.ib-y{background:var(--g);color:var(--bg)}
+.ib-n{background:transparent;color:var(--t3);border:1px solid var(--br2)}
+
+/* logo */
+.logo{font-size:1.45rem;font-weight:800;color:var(--t);margin:6px 0 3px;z-index:1;letter-spacing:-.5px}
+.logo i{color:var(--g);font-style:italic}
+.sub{font-size:10px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:22px;z-index:1}
+
+/* card */
+.card{width:100%;max-width:540px;background:var(--c1);border:1px solid var(--br2);border-radius:var(--r2);overflow:hidden;position:relative;z-index:1}
+
+/* url row */
+.ur{display:flex;align-items:center;background:var(--c2);border:1.5px solid var(--br2);border-radius:var(--r);margin:18px 18px 12px;transition:border-color .18s,box-shadow .18s}
+.ur:focus-within{border-color:var(--g);box-shadow:0 0 0 3px rgba(200,241,53,.09)}
+.ui{flex:1;background:transparent;border:none;outline:none;font-family:inherit;font-size:.9rem;color:var(--t);padding:13px 14px;direction:ltr;min-width:0}
+.ui::placeholder{color:var(--t3);font-size:.85rem}
+.pp{padding:0 13px;border-right:1px solid var(--br);color:var(--t2);font-size:14px;cursor:pointer;height:46px;display:flex;align-items:center;flex-shrink:0;transition:color .15s;user-select:none}
+.pp:hover{color:var(--g)}
+
+/* fmt pills */
+.fr{display:flex;gap:8px;margin:0 18px 10px}
+.fp{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--c2);border:1.5px solid var(--br);border-radius:var(--r);font-size:.83rem;font-weight:600;color:var(--t2);cursor:pointer;transition:all .15s;user-select:none}
+.fp:hover{border-color:rgba(200,241,53,.3);color:var(--t)}
+.fp.on{background:rgba(200,241,53,.1);border-color:var(--g);color:var(--g)}
+
+/* quality chips */
+.qr{display:flex;gap:6px;flex-wrap:wrap;margin:0 18px 18px}
+.qc{padding:5px 13px;border-radius:100px;background:var(--c2);border:1.5px solid var(--br);font-size:12px;font-weight:600;color:var(--t2);cursor:pointer;transition:all .15s;user-select:none;font-family:inherit}
+.qc:hover{border-color:rgba(200,241,53,.3);color:var(--t)}
+.qc.on{background:rgba(200,241,53,.1);border-color:var(--g);color:var(--g)}
+
+/* big button */
+.dlb{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:16px;background:var(--g);color:var(--bg);border:none;font-family:inherit;font-size:.98rem;font-weight:800;cursor:pointer;transition:background .15s,transform .1s;letter-spacing:-.2px}
+.dlb:hover{background:var(--g2)}
+.dlb:active{transform:scale(.99)}
+.dlb:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.sp{width:18px;height:18px;border:2.5px solid rgba(0,0,0,.15);border-top-color:var(--bg);border-radius:50%;animation:spin .65s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* progress */
+.pg{display:none;padding:16px 18px;border-top:1px solid var(--br)}
+.pg.on{display:block}
+.pg-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.pg-lbl{font-size:12px;font-weight:600;color:var(--t2)}
+.pg-pct{font-size:22px;font-weight:800;color:var(--g);letter-spacing:-1px;line-height:1}
+.pg-track{height:5px;background:var(--c3);border-radius:3px;overflow:hidden;margin-bottom:9px}
+.pg-fill{height:100%;width:0;background:linear-gradient(90deg,var(--g2),var(--g));border-radius:3px;transition:width .55s cubic-bezier(.22,1,.36,1)}
+.pg-stats{display:flex;gap:14px}
+.ps{font-size:11px;color:var(--t3)}
+.ps b{color:var(--t2);font-weight:600}
+
+/* cache badge */
+.cb{display:none;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--g);background:rgba(200,241,53,.09);border:1px solid rgba(200,241,53,.22);border-radius:8px;padding:3px 9px;margin-bottom:10px}
+.cb.on{display:inline-flex}
+
+/* done */
+.dn{display:none;padding:16px 18px;border-top:1px solid var(--br);align-items:center;gap:13px}
+.dn.on{display:flex}
+.di{width:44px;height:44px;border-radius:12px;background:rgba(200,241,53,.1);border:1px solid rgba(200,241,53,.25);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--g);flex-shrink:0}
+.dn-info{flex:1;min-width:0}
+.dn-t{font-size:.88rem;font-weight:700;color:var(--g);margin-bottom:2px}
+.dn-n{font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sv{display:flex;align-items:center;gap:5px;padding:9px 16px;background:var(--g);color:var(--bg);border-radius:10px;font-family:inherit;font-size:.82rem;font-weight:800;text-decoration:none;flex-shrink:0;transition:background .15s;white-space:nowrap}
+.sv:hover{background:var(--g2)}
+
+/* error */
+.er{display:none;padding:13px 18px;border-top:1px solid rgba(255,70,70,.14);background:rgba(255,50,50,.04)}
+.er.on{display:flex;gap:10px;align-items:flex-start}
+.er-ico{color:#ff5050;font-size:14px;margin-top:2px;flex-shrink:0}
+.er-h{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#ff4040;margin-bottom:3px}
+.er-m{font-size:12px;color:#ff8888;line-height:1.6}
+
+/* history */
+.hw{width:100%;max-width:540px;position:relative;z-index:1;display:none}
+.hh{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
+.hh-t{font-size:11px;font-weight:700;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase}
+.hh-c{font-size:11px;color:var(--t3);cursor:pointer;padding:4px 9px;border-radius:7px;border:1px solid var(--br);background:transparent;font-family:inherit;transition:color .15s}
+.hh-c:hover{color:#ff5050}
+.hl{display:flex;flex-direction:column;gap:7px}
+.hi{background:var(--c1);border:1px solid var(--br);border-radius:var(--r);padding:11px 13px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:border-color .15s}
+.hi:hover{border-color:var(--br2)}
+.hi-ic{width:34px;height:34px;border-radius:9px;background:var(--c2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.hi-in{flex:1;min-width:0}
+.hi-t{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.hi-m{font-size:10px;color:var(--t3)}
+.hi-r{font-size:11px;color:var(--g);font-weight:700;flex-shrink:0}
+
+/* platforms */
+.plts{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:18px;max-width:540px;position:relative;z-index:1}
+.plt{font-size:10px;color:var(--t3);padding:4px 10px;border-radius:100px;background:rgba(255,255,255,.03);border:1px solid var(--br)}
+
+/* ios hint */
+#ios{display:none;position:relative;z-index:1;margin-top:12px;max-width:540px;background:rgba(200,241,53,.06);border:1px solid rgba(200,241,53,.16);border-radius:var(--r);padding:11px 15px;font-size:12px;color:var(--t2);line-height:1.7;text-align:center}
+#ios.on{display:block}
+#ios b{color:var(--g)}
+
+@media(max-width:380px){.dn{flex-wrap:wrap}.sv{width:100%;justify-content:center}.pg-stats{flex-wrap:wrap;gap:8px}}
+</style>
+</head>
+<body>
+<div class="b b1"></div><div class="b b2"></div>
+
+<div id="ibar">
+  <div id="ibar-t">ثبّت Savely<small>شغّله من شاشة الرئيسية بدون متصفح</small></div>
+  <div style="display:flex;gap:7px;flex-shrink:0">
+    <button class="ib ib-y" onclick="doInst()">تثبيت</button>
+    <button class="ib ib-n" onclick="this.closest('#ibar').classList.remove('on')">×</button>
+  </div>
+</div>
+
+<div class="logo">save<i>ly</i></div>
+<div class="sub">حمّل بدون علامة مائية</div>
+
+<div class="card">
+  <div class="ur">
+    <div class="pp" onclick="doPaste()">📋</div>
+    <input class="ui" id="ui" type="url" inputmode="url" placeholder="الصق رابط الفيديو هنا..." autocomplete="off" spellcheck="false"/>
+  </div>
+
+  <div class="fr">
+    <div class="fp on" id="f-mp4" onclick="setF('mp4')">🎬 فيديو MP4</div>
+    <div class="fp" id="f-mp3" onclick="setF('mp3')">🎵 صوت MP3</div>
+  </div>
+
+  <div class="qr" id="qr">
+    <div class="qc on" onclick="setQ(this,'best')">أفضل</div>
+    <div class="qc" onclick="setQ(this,'1080')">1080p</div>
+    <div class="qc" onclick="setQ(this,'720')">720p</div>
+    <div class="qc" onclick="setQ(this,'480')">480p</div>
+    <div class="qc" onclick="setQ(this,'360')">360p</div>
+  </div>
+
+  <button class="dlb" id="dlb" onclick="go()">
+    <span id="da" style="font-size:17px">⬇</span>
+    <span id="dt">تحميل الآن</span>
+    <div class="sp" id="sp"></div>
+  </button>
+
+  <div class="pg" id="pg">
+    <div class="cb" id="cb">⚡ من الكاش — فوري!</div>
+    <div class="pg-row">
+      <span class="pg-lbl" id="pl">جارٍ التحميل...</span>
+      <span class="pg-pct" id="pp">0%</span>
+    </div>
+    <div class="pg-track"><div class="pg-fill" id="pf"></div></div>
+    <div class="pg-stats">
+      <div class="ps">السرعة: <b id="ss">—</b></div>
+      <div class="ps">متبقي: <b id="se">—</b></div>
+    </div>
+  </div>
+
+  <div class="dn" id="dn">
+    <div class="di">✓</div>
+    <div class="dn-info">
+      <div class="dn-t">جاهز!</div>
+      <div class="dn-n" id="dnn">—</div>
+    </div>
+    <a class="sv" id="sl" href="#" download>💾 حفظ</a>
+  </div>
+
+  <div class="er" id="er">
+    <div class="er-ico">⚠</div>
+    <div><div class="er-h">فشل التحميل</div><div class="er-m" id="em">—</div></div>
+  </div>
+</div>
+
+<div class="hw" id="hw">
+  <div class="hh">
+    <div class="hh-t">آخر التحميلات</div>
+    <button class="hh-c" onclick="clrH()">مسح الكل</button>
+  </div>
+  <div class="hl" id="hl"></div>
+</div>
+
+<div id="ios">لتثبيت التطبيق على iPhone: اضغط <b>مشاركة ↑</b> ثم <b>إضافة للشاشة الرئيسية</b></div>
+
+<div class="plts">
+  <div class="plt">يوتيوب</div><div class="plt">تيك توك</div><div class="plt">إنستغرام</div>
+  <div class="plt">تويتر/X</div><div class="plt">فيسبوك</div><div class="plt">Vimeo</div>
+  <div class="plt">Twitch</div><div class="plt">ريديت</div><div class="plt">+1000</div>
+</div>
+
+<script>
+'use strict';
+// ── state ──
+let fmt='mp4',qual='best',jid=null,es=null,dp=null;
+const SL={pending:'جارٍ التهيئة...',downloading:'جارٍ التحميل',merging:'دمج الصوت والصورة...',done:'اكتمل!'};
+
+// ── PWA ──
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js').catch(()=>{});
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;document.getElementById('ibar').classList.add('on')});
+function doInst(){if(!dp)return;dp.prompt();dp.userChoice.then(()=>{dp=null;document.getElementById('ibar').classList.remove('on')})}
+if(/iphone|ipad|ipod/i.test(navigator.userAgent)&&!navigator.standalone) document.getElementById('ios').classList.add('on');
+
+// ── helpers ──
+async function doPaste(){try{document.getElementById('ui').value=(await navigator.clipboard.readText()).trim()}catch{document.getElementById('ui').focus()}}
+function setF(f){fmt=f;['mp4','mp3'].forEach(x=>document.getElementById('f-'+x).classList.toggle('on',f===x));const q=document.getElementById('qr');q.style.opacity=f==='mp3'?'.3':'1';q.style.pointerEvents=f==='mp3'?'none':''}
+function setQ(el,q){qual=q;document.querySelectorAll('.qc').forEach(c=>c.classList.remove('on'));el.classList.add('on')}
+function busy(v){const b=document.getElementById('dlb');b.disabled=v;document.getElementById('da').style.display=v?'none':'';document.getElementById('dt').style.display=v?'none':'';document.getElementById('sp').style.display=v?'block':'none'}
+function hide(){['pg','dn','er'].forEach(id=>document.getElementById(id).classList.remove('on'));document.getElementById('cb').classList.remove('on')}
+function prog(p,lbl,spd,eta){
+  p=Math.min(100,Math.round(p||0));
+  document.getElementById('pf').style.width=p+'%';
+  document.getElementById('pp').textContent=p+'%';
+  if(lbl)document.getElementById('pl').textContent=lbl;
+  document.getElementById('ss').textContent=spd>0?(+spd).toFixed(1)+' MB/s':'—';
+  document.getElementById('se').textContent=eta>0?eta+'ث':'—';
+}
+
+// ── history ──
+function lh(){try{return JSON.parse(localStorage.getItem('svh')||'[]')}catch{return[]}}
+function sh(h){localStorage.setItem('svh',JSON.stringify(h.slice(0,15)))}
+function ah(item){const h=lh();h.unshift({...item,ts:Date.now()});sh(h);rh()}
+function clrH(){localStorage.removeItem('svh');rh()}
+function ta(ts){const s=(Date.now()-ts)/1000;return s<60?'الآن':s<3600?~~(s/60)+'د':s<86400?~~(s/3600)+'س':~~(s/86400)+'ي'}
+function rh(){
+  const h=lh(),w=document.getElementById('hw'),l=document.getElementById('hl');
+  if(!h.length){w.style.display='none';return}
+  w.style.display='';
+  l.innerHTML=h.map((it,i)=>`<div class="hi" onclick="ru(${i})"><div class="hi-ic">${it.fmt==='mp3'?'🎵':'🎬'}</div><div class="hi-in"><div class="hi-t">${it.title||it.url}</div><div class="hi-m">${it.qual==='best'?'أفضل':it.qual+'p'} · ${it.fmt.toUpperCase()} · ${ta(it.ts)}</div></div><div class="hi-r">↗</div></div>`).join('');
+}
+function ru(i){const it=lh()[i];if(!it)return;document.getElementById('ui').value=it.url;setF(it.fmt);document.querySelectorAll('.qc').forEach(c=>{const q=c.getAttribute('onclick').match(/'([^']+)'/)?.[1];if(q===it.qual){c.click()}});startDl()}
+rh();
+
+// ── auto-download ──
+function autoDL(url,name){const a=document.createElement('a');a.href=url;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),1000)}
+
+// ── show done ──
+async function showDone(id){
+  let title='video',ext=fmt;
+  try{const r=await fetch('/api/status/'+id);const d=await r.json();title=d.title||title;ext=d.ext||ext}catch{}
+  const name=(title.slice(0,55)||'video')+'.'+ext;
+  const url='/api/file/'+id;
+  hide();
+  document.getElementById('dnn').textContent=name;
+  document.getElementById('sl').href=url;
+  document.getElementById('sl').download=name;
+  document.getElementById('dn').classList.add('on');
+  autoDL(url,name);
+  ah({url:document.getElementById('ui').value.trim(),title,fmt,qual,ext});
+  busy(false);
+}
+
+// ── SSE ──
+function startSSE(id){
+  if(es){es.close();es=null}
+  es=new EventSource('/api/progress/'+id);
+  es.onmessage=e=>{
+    const d=JSON.parse(e.data);
+    if(d.error){es.close();es=null;hide();document.getElementById('em').textContent=d.error;document.getElementById('er').classList.add('on');busy(false);return}
+    prog(d.pct,SL[d.status]||d.status,d.speed,d.eta);
+    if(d.status==='done'){es.close();es=null;setTimeout(()=>showDone(id),400)}
+    else if(d.status==='error'){es.close();es=null;hide();document.getElementById('em').textContent=d.error||'خطأ أثناء التحميل';document.getElementById('er').classList.add('on');busy(false)}
+  };
+  es.onerror=()=>{if(es){es.close();es=null}poll(id)};
+}
+
+// ── polling fallback ──
+function poll(id,n=0){
+  setTimeout(async()=>{
+    try{
+      const r=await fetch('/api/status/'+id);const d=await r.json();
+      prog(d.pct,SL[d.status]||d.status,d.speed,d.eta);
+      if(d.status==='done')showDone(id);
+      else if(d.status==='error'){hide();document.getElementById('em').textContent=d.error||'خطأ';document.getElementById('er').classList.add('on');busy(false)}
+      else poll(id,n+1);
+    }catch{poll(id,n+1)}
+  },2000);
+}
+
+// ── MAIN ──
+async function go(){
+  const url=document.getElementById('ui').value.trim();
+  if(!url){const i=document.getElementById('ui');i.focus();i.style.outline='2px solid #ff4040';setTimeout(()=>i.style.outline='',1800);return}
+  if(es){es.close();es=null}
+  busy(true);hide();
+  document.getElementById('pg').classList.add('on');
+  prog(2,'جارٍ الاتصال...',0,0);
+
+  try{
+    const r=await fetch('/api/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,format:fmt,quality:qual})});
+    const d=await r.json();
+    if(!r.ok||d.error){hide();document.getElementById('em').textContent=d.error||'خطأ';document.getElementById('er').classList.add('on');busy(false);return}
+    jid=d.job_id;
+    if(d.cached){document.getElementById('cb').classList.add('on');prog(100,'من الكاش!',0,0);setTimeout(()=>showDone(jid),300);return}
+    startSSE(jid);
+  }catch(e){hide();document.getElementById('em').textContent='تعذر الاتصال: '+e.message;document.getElementById('er').classList.add('on');busy(false)}
+}
+
+// ── enter key ──
+document.getElementById('ui').addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+</script>
+</body>
+</html>
